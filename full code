@@ -1,0 +1,275 @@
+######################################################################
+year 2 userform for module entries; module code, credits(CATS), & grade
+#######################################################################
+Option Explicit
+
+Private Sub CancelClick_Click()
+Unload UserFormYr2
+End Sub
+
+'Private Sub GradValue_Change()
+'''why is this displaying regardless of the if statement
+''If GradValue.Value < 0 Or GradValue.Value > 100 Then
+''    MsgBox "Grade must be between 0 and 100"
+''    Else: Exit Sub
+''    End If
+''
+''End Sub
+Private Sub Gradvalue_AfterUpdate()
+    If GradValue < 0 Or GradValue > 100 Then
+        GradValue.BackStyle = fmBackStyleOpaque
+        GradValue.BackColor = RGB(255, 0, 0)
+        GradValue.ForeColor = RGB(255, 255, 255)
+        MsgBox "Grade must be between 0 and 100", vbOKOnly
+    Else:
+        GradValue.BackStyle = fmBackStyleTransparent
+        GradValue.ForeColor = RGB(0, 0, 0)
+    End If
+End Sub
+
+
+Private Sub AddMod_Click()
+
+'error  message for no value in one or more fields
+If ModValue.Value = "" Or OptionButton1.Value = "" Or OptionButton1.Value = "" Or GradValue.Value = "" Then
+   If MsgBox("Please complete all fields", vbOKOnly) Then
+   Exit Sub
+   End If
+End If
+
+
+'error for credit value exceeding 120
+If Range("B19") > 120 Then
+    MsgBox "You have exceeded the credit limit, please ensure credits total 120 for the year"
+    End If
+
+'put userform entry data into appropriate cells. I have set the activecell to the beginning cell of the data table (A9) and tried to automate the program
+'moving down to the next row once the user clicks 'add module'
+'reset form using ResetForm sub within module
+
+Dim sheet1 As Worksheet
+
+Set sheet1 = Application.Workbooks("VBA Assignment 1 - version 5 TEST .xlsm").Worksheets("Sheet1")
+sheet1.Cells(9, 1).Activate
+
+'attempted a loop to repeat the offsets until the user presses the cancel button, but haven't got it to work
+'Do While Selection.End(xlDown).Select = 0
+'grades must be entered manually into the excel tables as I was unable to get automate the row change correctly when the 'Add Module' button was pressed.
+ActiveCell = ModValue.Value
+Do While CancelClick_Click.Value = False
+
+
+If OptionButton1.Value = True Then ActiveCell.Offset(0, 1) = OptionButton1.Caption
+If OptionButton2.Value = True Then ActiveCell.Offset(0, 1) = OptionButton2.Caption
+ActiveCell.Offset(0, 2) = GradValue.Value
+
+'shift down 1 row per new entry
+ActiveCell.Offset(1, 0).Select
+'Loop
+
+'reset form using ResetForm sub within module
+Call ResetForm
+
+End Sub
+'Private Sub CredValue_Change()
+'If CredValue.Value <> 15 Or CredValue.Value <> 30 Then
+'    If MsgBox("Credit value must be 15 or 30", vbOKOnly) Then
+'    Exit Sub
+'    End If
+'End If
+'End Sub
+Sub ResetForm()
+
+'Reset all user input values
+ModValue.Value = ""
+OptionButton1.Value = False
+OptionButton2.Value = False
+
+GradValue.Value = ""
+GradValue.BackStyle = fmBackStyleTransparent
+GradValue.ForeColor = RGB(255, 255, 255)
+
+
+'Move cursor to first input box
+UserFormYr2.ModValue.SetFocus
+End Sub
+
+
+'protect sheet1 from being changed by user but allows userform entry to change the cells.
+'REFERENCE:https://www.ozgrid.com/forum/index.php?thread/70645-force-user-form-entry-only/
+'Private Sub UserForm_Activate()
+'ThisWorkbook.Sheets("sheet1").Protect contents:=True, userinterfaceonly:=True
+'Me.ModValue.Value = CStr(ThisWorkbook.Sheets(1).Range("a9").Value)
+'End Sub
+'Private Sub TextBox1_Change()
+'ThisWorkbook.Sheets(1).Range("a8").Value = Me.ModValue.Value
+'End Sub
+
+######################################################################
+year 3 userform for module entries; module code, credits(CATS), & grade
+#######################################################################
+
+Option Explicit
+
+
+
+Sub Rounded_Weighted_AverageYR3()
+Dim Calculation As Integer
+Dim classification As String
+
+Range("F26").Formula = "=((2/3)*AVERAGE(h8:h16))" & classification
+Range("F26").NumberFormat = "0"
+Range("F26").Interior.Color = RGB(193, 227, 114)
+
+'if statements for generic classification (40,50,60,70)
+    If Range("F26") > 0 Then classification = "Fail"
+    If Range("F26") >= 40 Then classification = "Third Class"
+    If Range("F26") >= 50 Then classification = "Second Class Lower Division (2:2)"
+    If Range("F26") >= 60 Then classification = "Second Class Upper Division (2:1)"
+    If Range("F26") >= 70 Then classification = "First Class"
+
+     MsgBox "Grade: " & Format(Range("F26").Value, "0.00") & "%" & vbNewLine & "Classification: " & classification
+
+End Sub
+
+'if statements for classification ranges
+Sub Unrounded_Weighted_AverageYR3()
+Dim Calculation As Double
+Dim classification As String
+
+Range("I21").Formula = "=((2/3)*AVERAGE(h8:h16))"
+Range("I21").NumberFormat = "0.00"
+Range("I21").Interior.Color = RGB(193, 227, 114)
+
+    If Range("I21") >= 38 And Range("I21") < 40 Or Range("L16") >= 40 Then classification = "Compensatory Pass"
+    If Range("I21") >= 48 And Range("I21") < 50 Or Range("L16") >= 50 Then classification = "Second Class Lower Division"
+    If Range("I21") >= 58 And Range("I21") < 60 Or Range("L16") >= 60 Then classification = "Second Class Upper Division"
+    If Range("I21") >= 68 And Range("I21") < 70 Or Range("L16") >= 70 Then classification = "First Class"
+
+     MsgBox "Grade: " & Format(Range("L16").Value, "0.00") & "%" & vbNewLine & "Classification: " & classification
+
+End Sub
+
+Sub CreditValueLimit()
+
+Sheets("Sheet1").Range("B19").Formula = "=SUM(B8:B18)"
+
+End Sub
+
+
+'protect sheet1 from being changed by user but allows userform entry to change the cells.
+'REFERENCE:https://www.ozgrid.com/forum/index.php?thread/70645-force-user-form-entry-only/
+'Private Sub UserForm_Activate()
+'ThisWorkbook.Sheets("sheet1").Protect contents:=True, userinterfaceonly:=True
+'Me.ModValue.Value = CStr(ThisWorkbook.Sheets(1).Range("a9").Value)
+'End Sub
+''Private Sub TextBox1_Change()
+''ThisWorkbook.Sheets(1).Range("a8").Value = Me.ModValue.Value
+''End Sub
+
+######################################################################
+Final classification
+#######################################################################
+
+Option Explicit
+'this sub is to macro the 'yr2 and yr3 classification button' to display a final classification.
+'I have written the code to calculate whether marks within the thresholds for the next higher class have 50% of credits at that threshold in
+'ClassificationCheckYr2 and ClassificationcheckYr3 but ran out of time trying to include this in the final classification button.
+
+Sub finalclassification()
+Dim classification As String
+
+Range("F26").Formula = "=Sum(D21 +I21)"
+Range("f26").NumberFormat = "0"
+Range("F26").Interior.Color = RGB(193, 227, 114)
+
+ If Range("F26") > 0 Then classification = "Fail"
+    If Range("F26") >= 40 Then classification = "Third Class"
+    If Range("F26") >= 50 Then classification = "Second Class Lower Division (2:2)"
+    If Range("F26") >= 60 Then classification = "Second Class Upper Division (2:1)"
+    If Range("F26") >= 70 Then classification = "First Class"
+
+     MsgBox "Grade: " & Format(Range("F26").Value, "0.00") & "%" & vbNewLine & "Classification: " & classification
+
+
+
+End Sub
+
+######################################################################
+USER MACRO BUTTONS 
+#######################################################################
+Option Explicit
+'macro: open userform for year 2
+Sub openUserFormYr2()
+'open userform with .show and set cursor to first texbox
+UserFormYr2.Show
+UserFormYr2.ModValue.SetFocus
+End Sub
+
+
+'macro: open userform for year 3
+Sub openUserFormYr3()
+'open userform with .show and set cursor to first texbox
+UserFormYr3.Show
+UserFormYr3.ModValue.SetFocus
+End Sub
+
+######################################################################
+USER MACRO BUTTONS 
+#######################################################################
+Option Explicit
+
+'sub to remove modules previously entered (mod code, credits, & grade) sreference:https://www.youtube.com/watch?v=RGfBfDcuu7Y
+Sub RemoveModule1()
+Range("A9:C9").ClearContents
+End Sub
+Sub RemoveModule2()
+Range("A10:c10").ClearContents
+End Sub
+Sub RemoveModule3()
+Range("a11:C11").ClearContents
+End Sub
+Sub RemoveModule4()
+Range("A12:c12").ClearContents
+End Sub
+Sub RemoveModule5()
+Range("A13:c13").ClearContents
+End Sub
+Sub RemoveModule6()
+Range("A14:c14").ClearContents
+End Sub
+Sub removemodule7()
+Range("a15:c15").ClearContents
+End Sub
+Sub removemodule8()
+Range("a16:C16").ClearContents
+End Sub
+Sub removemodule9()
+Range("f9:h9").ClearContents
+End Sub
+Sub removemodule10()
+Range("f10:h10").ClearContents
+End Sub
+Sub removemodule11()
+Range("f11:h11").ClearContents
+End Sub
+Sub removemodule12()
+Range("f12:h12").ClearContents
+End Sub
+Sub removemodule13()
+Range("f13:h13").ClearContents
+End Sub
+Sub removemodule14()
+Range("f14:h14").ClearContents
+End Sub
+Sub removemodule15()
+Range("f15:h15").ClearContents
+End Sub
+Sub removemodule16()
+Range("f16:h16").ClearContents
+End Sub
+
+
+
+
+
